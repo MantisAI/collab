@@ -27,7 +27,7 @@ jobs:
     
     - name: Check Jupyter startup
       run: |
-        if docker logs test-container | grep -qi "Jupyter Server.*is running at"; then
+        if docker logs test-container | grep -qi "Jupyter Server 2.14.2 is running at"; then
           echo "Jupyter started successfully"
           exit 0
         else
