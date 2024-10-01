@@ -24,8 +24,6 @@ jobs:
         docker inspect test-container --format '{{.State.Status}}'
         echo "Container exit code:"
         docker inspect test-container --format '{{.State.ExitCode}}'
-        docker stop test-container
-      continue-on-error: true
     
     - name: Check Jupyter startup
       run: |
@@ -34,5 +32,10 @@ jobs:
           exit 0
         else
           echo "Jupyter failed to start"
+          docker logs test-container
           exit 1
         fi
+    
+    - name: Stop Docker container
+      if: always()
+      run: docker stop test-container
