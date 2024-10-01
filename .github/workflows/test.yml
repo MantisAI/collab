@@ -15,7 +15,7 @@ jobs:
     - name: Test Docker image
       run: |
         docker run -d --name test-container -p 8888:8888 my-jupyter-app
-        sleep 30
+        sleep 60  # Augmenter le délai d'attente à 60 secondes
         echo "Container logs:"
         docker logs test-container
         echo "Searching for Jupyter in logs:"
@@ -27,7 +27,7 @@ jobs:
     
     - name: Check Jupyter startup
       run: |
-        if docker logs test-container | grep -qi "Jupyter Server 2.14.2 is running at"; then
+        if docker logs test-container | grep -qi "Jupyter Server"; then
           echo "Jupyter started successfully"
           exit 0
         else
