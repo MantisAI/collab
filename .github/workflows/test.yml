@@ -27,9 +27,16 @@ jobs:
     - name: Run tests
       run: poetry run pytest
 
-    - name: Set up Docker
+    - name: Set up Docker for macOS
+      if: runner.os == 'macOS'
+      run: |
+        brew install docker
+        colima start
+        sudo ln -sf $HOME/.colima/docker.sock /var/run/docker.sock
+
+    - name: Set up Docker for Windows
+      if: runner.os == 'Windows'
       uses: docker-practice/actions-setup-docker@master
-      if: matrix.os != 'ubuntu-latest'
 
     - name: Build Docker image
       run: docker build -t my-jupyter-app .
