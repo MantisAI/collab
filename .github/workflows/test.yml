@@ -32,22 +32,28 @@ jobs:
         if: runner.os == 'Windows'
         uses: docker-practice/actions-setup-docker@master
 
-      - name: Set up Docker for Ubuntu
+      - name: Install Docker CE on Ubuntu
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y docker.io
+          sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y docker-ce docker-ce-cli containerd.io
           sudo systemctl start docker
           sudo systemctl enable docker
-        shell: bash
 
       - name: Build Docker image
+        if: runner.os != 'Windows'
         run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            docker build -t my-jupyter-app -f Dockerfile.windows .
-          else
-            docker build -t my-jupyter-app .
-          fi
+          docker build -t my-jupyter-app .
+        shell: bash
+
+      - name: Build Docker image for Windows
+        if: runner.os == 'Windows'
+        run: |
+          docker build -t my-jupyter-app -f Dockerfile.windows .
         shell: bash
 
       - name: Test Docker image
