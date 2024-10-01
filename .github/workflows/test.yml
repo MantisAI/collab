@@ -30,13 +30,23 @@ jobs:
     - name: Set up Docker for macOS
       if: runner.os == 'macOS'
       run: |
-        brew install colima docker
-        colima start --cpu 2 --memory 4 --disk 60
+        brew install --cask docker
+        sudo /Applications/Docker.app/Contents/MacOS/Docker --unattended --install-privileged-components
+        open -a Docker
         while ! docker system info > /dev/null 2>&1; do
           echo "Waiting for Docker to start..."
           sleep 5
         done
         echo "Docker is running"
+      shell: bash
+
+    - name: Debug Docker installation
+      if: runner.os == 'macOS'
+      run: |
+        ls -l /Applications/Docker.app/Contents/MacOS/
+        which docker
+        docker version
+        docker info
       shell: bash
 
     - name: Set up Docker for Windows
