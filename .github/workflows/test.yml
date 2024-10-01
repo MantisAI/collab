@@ -12,10 +12,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     
@@ -26,13 +26,22 @@ jobs:
     
     - name: Run tests
       run: poetry run pytest
-    
+
+    - name: Set up Docker
+      uses: docker-practice/actions-setup-docker@master
+      if: matrix.os != 'ubuntu-latest'
+
     - name: Build Docker image
       run: docker build -t my-jupyter-app .
-    
+
     - name: Test Docker image
       run: |
         docker run -d --name test-container -p 8888:8888 my-jupyter-app
         sleep 30
+        docker logs test-container
         docker logs test-container | grep -q "Jupyter"
         docker stop test-container
+
+    - name: Clean up Docker
+      if: always()
+      run: docker rm -f test-container || true
