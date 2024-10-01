@@ -15,7 +15,7 @@ jobs:
     - name: Test Docker image
       run: |
         docker run -d --name test-container -p 8888:8888 my-jupyter-app
-        sleep 60  # Augmenter le délai d'attente à 60 secondes
+        sleep 30  # Attendre 30 secondes pour que Jupyter démarre
         echo "Container logs:"
         docker logs test-container
         echo "Searching for Jupyter in logs:"
@@ -27,14 +27,20 @@ jobs:
     
     - name: Check Jupyter startup
       run: |
-        if docker logs test-container | grep -qi "Jupyter Server"; then
-          echo "Jupyter started successfully"
-          exit 0
-        else
-          echo "Jupyter failed to start"
-          docker logs test-container
-          exit 1
-        fi
+        max_attempts=10
+        attempt=1
+        while [ $attempt -le $max_attempts ]; do
+          if docker logs test-container | grep -q "Jupyter Server.*is running at"; then
+            echo "Jupyter started successfully"
+            exit 0
+          fi
+          echo "Attempt $attempt: Jupyter not started yet, waiting..."
+          sleep 5
+          attempt=$((attempt+1))
+        done
+        echo "Jupyter failed to start after $max_attempts attempts"
+        docker logs test-container
+        exit 1
     
     - name: Stop Docker container
       if: always()
