@@ -15,15 +15,6 @@ jobs:
     - name: Test Docker image
       run: |
         docker run -d --name test-container -p 8888:8888 my-jupyter-app
-        sleep 30  # Attendre 30 secondes pour que Jupyter démarre
-        echo "Container logs:"
-        docker logs test-container
-        echo "Searching for Jupyter in logs:"
-        docker logs test-container | grep -i "jupyter" || true
-        echo "Container status:"
-        docker inspect test-container --format '{{.State.Status}}'
-        echo "Container exit code:"
-        docker inspect test-container --format '{{.State.ExitCode}}'
     
     - name: Check Jupyter startup
       run: |
@@ -46,3 +37,40 @@ jobs:
     - name: Stop Docker container
       if: always()
       run: docker stop test-container
+
+  docker-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Build Docker image
+      run: docker build -t my-jupyter-app-windows -f Dockerfile.windows .
+    
+    - name: Test Docker image
+      run: |
+        docker run -d --name test-container-windows -p 8888:8888 my-jupyter-app-windows
+    
+    - name: Check Jupyter startup
+      shell: pwsh
+      run: |
+        $maxAttempts = 10
+        $attempt = 1
+        while ($attempt -le $maxAttempts) {
+          $logs = docker logs test-container-windows 2>&1
+          if ($logs -match "Jupyter Server .* is running at") {
+            Write-Host "Jupyter started successfully"
+            exit 0
+          }
+          Write-Host "Attempt $attempt: Jupyter not started yet, waiting..."
+          Start-Sleep -Seconds 5
+          $attempt++
+        }
+        Write-Host "Jupyter failed to start after $maxAttempts attempts"
+        Write-Host "Full container logs:"
+        docker logs test-container-windows
+        exit 1
+    
+    - name: Stop Docker container
+      if: always()
+      run: docker stop test-container-windows
