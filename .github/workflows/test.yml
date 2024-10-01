@@ -40,5 +40,6 @@ jobs:
       run: |
         docker run -d --name test-container -p 8888:8888 my-jupyter-app
         sleep 30
+        docker logs test-container
         docker logs test-container | grep -q "Jupyter"
         docker stop test-container
