@@ -30,8 +30,8 @@ jobs:
     - name: Set up Docker for macOS
       if: runner.os == 'macOS'
       run: |
-        brew install --cask docker
-        open -a Docker
+        brew install colima docker
+        colima start --cpu 2 --memory 4 --disk 60
         while ! docker system info > /dev/null 2>&1; do
           echo "Waiting for Docker to start..."
           sleep 5
