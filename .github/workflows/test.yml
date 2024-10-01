@@ -30,7 +30,7 @@ jobs:
         max_attempts=10
         attempt=1
         while [ $attempt -le $max_attempts ]; do
-          if docker logs test-container | awk '/Jupyter Server .* is running at/ {print; exit 0} END {exit 1}'; then
+          if docker logs test-container 2>&1 | grep -zq "Jupyter Server 2.14.2 is running at"; then
             echo "Jupyter started successfully"
             exit 0
           fi
@@ -39,6 +39,7 @@ jobs:
           attempt=$((attempt+1))
         done
         echo "Jupyter failed to start after $max_attempts attempts"
+        echo "Full container logs:"
         docker logs test-container
         exit 1
     
