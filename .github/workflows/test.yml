@@ -40,6 +40,23 @@ jobs:
       run: |
         docker run -d --name test-container -p 8888:8888 my-jupyter-app
         sleep 30
+        echo "Container logs:"
         docker logs test-container
-        docker logs test-container | grep -q "Jupyter"
+        echo "Searching for Jupyter in logs:"
+        docker logs test-container | grep "Jupyter" || true
+        echo "Container status:"
+        docker inspect test-container --format '{{.State.Status}}'
+        echo "Container exit code:"
+        docker inspect test-container --format '{{.State.ExitCode}}'
         docker stop test-container
+      continue-on-error: true
+    
+    - name: Check Jupyter startup
+      run: |
+        if docker logs test-container | grep -q "Jupyter"; then
+          echo "Jupyter started successfully"
+          exit 0
+        else
+          echo "Jupyter failed to start"
+          exit 1
+        fi
