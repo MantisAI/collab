@@ -33,3 +33,6 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.poetry.extras]
+gpu = ["nvidia-cudnn-cu12", "triton"]

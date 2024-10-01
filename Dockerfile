@@ -1,11 +1,6 @@
-# Utiliser l'image Python 3.10 slim comme base
-FROM python:3.10-slim
+# Étape 1 : Build
+FROM python:3.10-slim as builder
 
-# Définir les variables d'environnement
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Définir le répertoire de travail
 WORKDIR /app
 
 # Installer les dépendances système nécessaires pour construire les paquets Python
@@ -19,12 +14,17 @@ RUN pip install --no-cache-dir poetry
 # Copier les fichiers de configuration de Poetry
 COPY pyproject.toml poetry.lock* /app/
 
-# Installer les dépendances Python et nettoyer les dépendances de construction
+# Installer les dépendances Python sans les extras GPU
 RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi \
-    && apt-get remove --purge -y build-essential \
-    && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/*
+    && poetry install --no-interaction --no-ansi
+
+# Étape 2 : Production
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Copier les dépendances depuis le builder
+COPY --from=builder /app /app
 
 # Copier le reste du code source
 COPY . /app
