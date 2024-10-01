@@ -21,42 +21,25 @@ This repository provides a Docker-based environment to ensure that all participa
 2. Build the Docker image using the provided `Dockerfile`:
 
    ```bash
-   docker build -t ai-env .
+   docker build -t my-jupyter-app
    ```
 
-   This command will create a Docker image named `ai-env` with all the necessary libraries pre-installed.
+   This command will create a Docker image named `my-jupyter-app` with all the necessary libraries pre-installed.
 
 ## Run the Docker Container
 
 Once the image is built, you can run the container using the following command:
 
 ```bash
-docker run -it -p 8888:8888 -v $(pwd):/usr/src/app ai-env
+docker run -p 8888:8888 my-jupyter-app jupyter
 ```
 
 This command will:
 
-- Run the container in interactive mode (`-it`).
-- Map the current directory on your host machine to `/usr/src/app` in the container (`-v $(pwd):/usr/src/app`).
+- Run the container to start Jupyter Notebook.
 - Expose port 8888, which is commonly used for Jupyter notebooks (`-p 8888:8888`).
 
-### Using Jupyter Notebooks
-
-If you want to run Jupyter notebooks inside the container, follow these steps:
-
-1. Start the container:
-
-   ```bash
-   docker run -it -p 8888:8888 -v $(pwd):/usr/src/app ai-env
-   ```
-
-2. Inside the container, start Jupyter:
-
-   ```bash
-   jupyter notebook --ip=0.0.0.0 --no-browser --allow-root
-   ```
-
-3. Copy the URL from the terminal output and open it in your browser to access the notebooks.
+Copy the URL from the terminal output and open it in your browser to access the notebooks.
 
 ## Accessing the Container
 
