@@ -44,6 +44,20 @@ jobs:
           sudo systemctl start docker
           sudo systemctl enable docker
 
+      - name: Verify Docker installation on Linux
+        if: runner.os == 'Linux'
+        run: |
+          docker --version
+          docker info
+        shell: bash
+
+      - name: Verify Docker installation on Windows
+        if: runner.os == 'Windows'
+        run: |
+          docker --version
+          docker info
+        shell: bash
+
       - name: Build Docker image
         if: runner.os != 'Windows'
         run: |
@@ -65,9 +79,16 @@ jobs:
           docker stop test-container
         shell: bash
 
-      - name: Clean up Docker
+      - name: Clean up Docker Containers
         if: always()
         run: docker rm -f test-container || true
+        shell: bash
+
+      - name: Clean up Docker System
+        if: always()
+        run: |
+          docker system prune -af
+          docker volume prune -f
         shell: bash
 
   test-macos:
