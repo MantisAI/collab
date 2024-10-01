@@ -1,26 +1,37 @@
-# Use an official Python runtime as a parent image
+# Use Python 3.10 slim image as the base
 FROM python:3.10-slim
 
-# Set the working directory in the container
-WORKDIR /usr/src/app
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-# Copy the current directory contents into the container at /usr/src/app
-COPY . .
+# Set work directory
+WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    wget \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the requirements.txt file to the container
-COPY requirements.txt .
+# Install Poetry
+RUN pip install --no-cache-dir poetry
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy only requirements to cache them in docker layer
+COPY pyproject.toml poetry.lock* /app/
 
-# Expose the port for any Jupyter notebooks
+# Install project dependencies
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-interaction --no-ansi
+
+# Copy project
+COPY . /app
+
+# Copy entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Expose port for Jupyter
 EXPOSE 8888
 
-# Define the command to run when the container starts
-CMD ["bash"]
+# Set entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
