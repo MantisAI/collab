@@ -3,74 +3,87 @@ name: Test
 on: [push, pull_request]
 
 jobs:
-  test:
+  test-linux-windows:
+    name: Test on ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest]
         python-version: ["3.10"]
     
     runs-on: ${{ matrix.os }}
     
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Install dependencies
-      run: |
-        pip install poetry
-        poetry install
-    
-    - name: Run tests
-      run: poetry run pytest
+      - uses: actions/checkout@v3
 
-    - name: Set up Docker for macOS
-      if: runner.os == 'macOS'
-      run: |
-        brew install --cask docker
-        open -a Docker
-        while ! docker system info > /dev/null 2>&1; do
-          echo "Waiting for Docker to start..."
-          sleep 5
-        done
-        echo "Docker is running"
-      shell: bash
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Install dependencies
+        run: |
+          pip install poetry
+          poetry install
+      
+      - name: Run tests
+        run: poetry run pytest
 
-    - name: Debug Docker installation
-      if: runner.os == 'macOS'
-      run: |
-        ls -l /Applications/Docker.app/Contents/MacOS/
-        which docker
-        docker version
-        docker info
-      shell: bash
+      - name: Set up Docker for Windows
+        if: runner.os == 'Windows'
+        uses: docker-practice/actions-setup-docker@master
 
-    - name: Set up Docker for Windows
-      if: runner.os == 'Windows'
-      uses: docker-practice/actions-setup-docker@master
+      - name: Set up Docker for Ubuntu
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+          sudo systemctl start docker
+          sudo systemctl enable docker
+        shell: bash
 
-    - name: Build Docker image
-      run: |
-        if [ "$RUNNER_OS" == "Windows" ]; then
-          docker build -t my-jupyter-app -f Dockerfile.windows .
-        else
-          docker build -t my-jupyter-app .
-        fi
-      shell: bash
+      - name: Build Docker image
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            docker build -t my-jupyter-app -f Dockerfile.windows .
+          else
+            docker build -t my-jupyter-app .
+          fi
+        shell: bash
 
-    - name: Test Docker image
-      run: |
-        docker run -d --name test-container -p 8888:8888 my-jupyter-app
-        sleep 30
-        docker logs test-container
-        docker logs test-container | grep -q "Jupyter"
-        docker stop test-container
-      shell: bash
+      - name: Test Docker image
+        run: |
+          docker run -d --name test-container -p 8888:8888 my-jupyter-app
+          sleep 30
+          docker logs test-container
+          docker logs test-container | grep -q "Jupyter"
+          docker stop test-container
+        shell: bash
 
-    - name: Clean up Docker
-      if: always()
-      run: docker rm -f test-container || true
-      shell: bash
+      - name: Clean up Docker
+        if: always()
+        run: docker rm -f test-container || true
+        shell: bash
+
+  test-macos:
+    name: Test on macOS
+    runs-on: macos-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Install dependencies
+        run: |
+          pip install poetry
+          poetry install
+      
+      - name: Run tests
+        run: poetry run pytest
