@@ -30,10 +30,9 @@ jobs:
     - name: Set up Docker for macOS
       if: runner.os == 'macOS'
       run: |
-        brew install docker
-        brew install colima
-        colima start --cpu 2 --memory 4 --disk 60
-        sudo ln -sf $HOME/.colima/docker.sock /var/run/docker.sock
+        brew install --cask docker
+        open -a Docker
+        while ! docker system info > /dev/null 2>&1; do sleep 1; done
 
     - name: Set up Docker for Windows
       if: runner.os == 'Windows'
