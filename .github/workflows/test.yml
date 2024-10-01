@@ -31,9 +31,13 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         brew install --cask docker
-        sudo /Applications/Docker.app/Contents/MacOS/Docker --unattended --install-privileged-components
         open -a Docker
-        timeout 60 sh -c 'until docker info &> /dev/null; do sleep 1; done'
+        while ! docker system info > /dev/null 2>&1; do
+          echo "Waiting for Docker to start..."
+          sleep 5
+        done
+        echo "Docker is running"
+      shell: bash
 
     - name: Set up Docker for Windows
       if: runner.os == 'Windows'
