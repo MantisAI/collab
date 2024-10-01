@@ -1,0 +1,44 @@
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: [3.11]
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        pip install poetry
+        poetry install
+    
+    - name: Run tests
+      run: poetry run pytest
+
+  docker:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Build Docker image
+      run: docker build -t my-jupyter-app .
+    
+    - name: Test Docker image
+      run: |
+        docker run -d --name test-container -p 8888:8888 my-jupyter-app
+        sleep 10
+        docker logs test-container | grep -q "Jupyter Notebook"
+        docker stop test-container
