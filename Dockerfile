@@ -1,40 +1,37 @@
-# Étape 1 : Build
-FROM python:3.10-slim as builder
+# Use Python 3.1 slim image as the base
+FROM python:3.10-slim
 
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Set work directory
 WORKDIR /app
 
-# Installer les dépendances système nécessaires pour construire les paquets Python
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Installer Poetry
+# Install Poetry
 RUN pip install --no-cache-dir poetry
 
-# Copier les fichiers de configuration de Poetry
+# Copy only requirements to cache them in docker layer
 COPY pyproject.toml poetry.lock* /app/
 
-# Installer les dépendances Python sans les extras GPU
+# Install project dependencies
 RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi
 
-# Étape 2 : Production
-FROM python:3.10-slim
-
-WORKDIR /app
-
-# Copier les dépendances depuis le builder
-COPY --from=builder /app /app
-
-# Copier le reste du code source
+# Copy project
 COPY . /app
 
-# Copier le script d'entrée et rendre exécutable
+# Copy entrypoint script
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Exposer le port pour Jupyter
+# Expose port for Jupyter
 EXPOSE 8888
 
-# Définir l'entrypoint
+# Set entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
