@@ -31,15 +31,22 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         brew install --cask docker
+        sudo /Applications/Docker.app/Contents/MacOS/Docker --unattended --install-privileged-components
         open -a Docker
-        while ! docker system info > /dev/null 2>&1; do sleep 1; done
+        timeout 60 sh -c 'until docker info &> /dev/null; do sleep 1; done'
 
     - name: Set up Docker for Windows
       if: runner.os == 'Windows'
       uses: docker-practice/actions-setup-docker@master
 
     - name: Build Docker image
-      run: docker build -t my-jupyter-app .
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          docker build -t my-jupyter-app -f Dockerfile.windows .
+        else
+          docker build -t my-jupyter-app .
+        fi
+      shell: bash
 
     - name: Test Docker image
       run: |
@@ -48,7 +55,9 @@ jobs:
         docker logs test-container
         docker logs test-container | grep -q "Jupyter"
         docker stop test-container
+      shell: bash
 
     - name: Clean up Docker
       if: always()
       run: docker rm -f test-container || true
+      shell: bash

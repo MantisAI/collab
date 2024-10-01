@@ -1,0 +1,27 @@
+# Use a Windows Server Core image with Python pre-installed
+FROM python:3.10-windowsservercore
+
+# Set work directory
+WORKDIR C:\app
+
+# Install Poetry
+RUN pip install --no-cache-dir poetry
+
+# Copy only requirements to cache them in docker layer
+COPY pyproject.toml poetry.lock* C:\app\
+
+# Install project dependencies
+RUN poetry config virtualenvs.create false && \
+    poetry install --no-interaction --no-ansi
+
+# Copy project
+COPY . C:\app
+
+# Copy entrypoint script (you'll need to create this)
+COPY entrypoint.bat C:\entrypoint.bat
+
+# Expose port for Jupyter
+EXPOSE 8888
+
+# Set entrypoint
+ENTRYPOINT ["C:\\entrypoint.bat"]
