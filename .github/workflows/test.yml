@@ -3,130 +3,42 @@ name: Test
 on: [push, pull_request]
 
 jobs:
-  test-linux-windows:
-    name: Test on ${{ matrix.os }}
+  test:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.10"]
-
+    
     runs-on: ${{ matrix.os }}
-
+    
     steps:
-      - uses: actions/checkout@v3
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        pip install poetry
+        poetry install
+    
+    - name: Run tests
+      run: poetry run pytest
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Cache Poetry dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-
-
-      - name: Install dependencies
-        run: |
-          pip install poetry
-          poetry install
-
-      - name: Run tests
-        run: poetry run pytest
-
-      - name: Set up Docker for Windows
-        if: runner.os == 'Windows'
-        uses: docker-practice/actions-setup-docker@master
-
-      - name: Install Docker CE on Ubuntu
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
-          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-          sudo apt-get update
-          sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-          sudo systemctl start docker
-          sudo systemctl enable docker
-
-      - name: Verify Docker installation on Linux
-        if: runner.os == 'Linux'
-        run: |
-          docker --version
-          docker info
-        shell: bash
-
-      - name: Verify Docker installation on Windows
-        if: runner.os == 'Windows'
-        run: |
-          docker --version
-          docker info
-        shell: bash
-
-      - name: Build Docker image
-        if: runner.os != 'Windows'
-        run: |
-          docker build -t my-jupyter-app .
-        shell: bash
-
-      - name: Build Docker image for Windows
-        if: runner.os == 'Windows'
-        run: |
-          docker build -t my-jupyter-app -f Dockerfile.windows .
-        shell: bash
-
-      - name: Test Docker image
-        run: |
-          docker run -d --name test-container -p 8888:8888 my-jupyter-app
-          sleep 30
-          docker logs test-container
-          docker logs test-container | grep -q "Jupyter"
-          docker stop test-container
-        shell: bash
-
-      - name: Clean up Docker Containers
-        if: always()
-        run: docker rm -f test-container || true
-        shell: bash
-
-      - name: Clean up Docker System
-        if: always()
-        run: |
-          docker system prune -af
-          docker volume prune -f
-        shell: bash
-
-  test-macos:
-    name: Test on macOS
-    runs-on: macos-latest
-
-    strategy:
-      matrix:
-        python-version: ["3.10"]
-
+  docker:
+    runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Cache Poetry dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pypoetry
-          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-poetry-
-
-      - name: Install dependencies
-        run: |
-          pip install poetry
-          poetry install
-
-      - name: Run tests
-        run: poetry run pytest
+    - uses: actions/checkout@v2
+    
+    - name: Build Docker image
+      run: docker build -t my-jupyter-app .
+    
+    - name: Test Docker image
+      run: |
+        docker run -d --name test-container -p 8888:8888 my-jupyter-app
+        sleep 30
+        docker logs test-container | grep -q "Jupyter"
+        docker stop test-container
