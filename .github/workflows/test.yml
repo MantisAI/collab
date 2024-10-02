@@ -62,11 +62,11 @@ jobs:
             Write-Host "Jupyter started successfully"
             exit 0
           }
-          Write-Host "Attempt $attempt: Jupyter not started yet, waiting..."
+          Write-Host "Attempt ${attempt}: Jupyter not started yet, waiting..."
           Start-Sleep -Seconds 5
           $attempt++
         }
-        Write-Host "Jupyter failed to start after $maxAttempts attempts"
+        Write-Host "Jupyter failed to start after ${maxAttempts} attempts"
         Write-Host "Full container logs:"
         docker logs test-container-windows
         exit 1
