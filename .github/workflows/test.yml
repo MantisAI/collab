@@ -74,3 +74,38 @@ jobs:
     - name: Stop Docker container
       if: always()
       run: docker stop test-container-windows
+
+  docker-macos:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Build Docker image
+      run: docker build -t my-jupyter-app-macos .
+    
+    - name: Test Docker image
+      run: |
+        docker run -d --name test-container-macos -p 8888:8888 my-jupyter-app-macos
+    
+    - name: Check Jupyter startup
+      run: |
+        max_attempts=10
+        attempt=1
+        while [ $attempt -le $max_attempts ]; do
+          if docker logs test-container-macos 2>&1 | grep -q "Jupyter Server .* is running at"; then
+            echo "Jupyter started successfully"
+            exit 0
+          fi
+          echo "Attempt $attempt: Jupyter not started yet, waiting..."
+          sleep 5
+          attempt=$((attempt+1))
+        done
+        echo "Jupyter failed to start after $max_attempts attempts"
+        echo "Full container logs:"
+        docker logs test-container-macos
+        exit 1
+    
+    - name: Stop Docker container
+      if: always()
+      run: docker stop test-container-macos
