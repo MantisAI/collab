@@ -25,6 +25,12 @@ scikit-learn = "^1.0.2"
 wandb = "^0.18.3"
 langchain = "^0.3.1"
 haystack = "^0.42"
+google-play-scraper = "^1.2.7"
+wordcloud = "^1.9.3"
+trl = "^0.11.1"
+accelerate = "^0.34.2"
+sentence-transformers = "^3.1.1"
+peft = "^0.13.0"
 
 
 [tool.poetry.group.dev.dependencies]
