@@ -22,6 +22,9 @@ setfit = "^1.1.0"
 jupyter = "^1.1.1"
 numpy = "^1.21.0"
 scikit-learn = "^1.0.2"
+wandb = "^0.18.3"
+langchain = "^0.3.1"
+haystack = "^0.42"
 
 
 [tool.poetry.group.dev.dependencies]
