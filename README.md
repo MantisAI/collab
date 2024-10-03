@@ -20,8 +20,15 @@ This repository provides a Docker-based environment to ensure that all participa
 
 2. Build the Docker image using the provided `Dockerfile`:
 
+
+   For Windows:
    ```bash
-   docker build -t my-jupyter-app
+   docker build -t my-jupyter-app -f Dockerfile.windows .
+   ```
+
+   For Unix:
+   ```bash
+   docker build -t my-jupyter-app-macos .
    ```
 
    This command will create a Docker image named `my-jupyter-app` with all the necessary libraries pre-installed.
