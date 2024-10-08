@@ -1,5 +1,11 @@
-# Use Python 3.1 slim image as the base
-FROM python:3.10-slim
+# Use a Windows-compatible Python image as the base
+FROM mcr.microsoft.com/windows/servercore:ltsc2022
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+# Install Python 3.10
+RUN Invoke-WebRequest -Uri "https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe" -OutFile "python-3.10.11-amd64.exe" ; \
+    Start-Process python-3.10.11-amd64.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=1' -Wait ; \
+    Remove-Item -Force python-3.10.11-amd64.exe
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -8,11 +14,6 @@ ENV PYTHONUNBUFFERED=1
 # Set work directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
 # Install Poetry
 RUN pip install --no-cache-dir poetry
 
@@ -20,18 +21,17 @@ RUN pip install --no-cache-dir poetry
 COPY pyproject.toml poetry.lock* /app/
 
 # Install project dependencies
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
+RUN poetry config virtualenvs.create false ; \
+    poetry install --no-interaction --no-ansi
 
 # Copy project
 COPY . /app
 
 # Copy entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY entrypoint.ps1 /entrypoint.ps1
 
 # Expose port for Jupyter
 EXPOSE 8888
 
 # Set entrypoint
-ENTRYPOINT ["bash", "/entrypoint.sh"]
+ENTRYPOINT ["powershell", "-File", "/entrypoint.ps1"]

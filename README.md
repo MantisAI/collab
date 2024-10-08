@@ -11,6 +11,12 @@ This repository provides a Docker-based environment to ensure that all participa
 
 ## Build the Docker Image
 
+0. Login to Docker Hub and open Docker Desktop:
+
+   ```bash
+   docker login
+   ```
+
 1. Clone this repository to your local machine:
 
    ```bash
@@ -19,7 +25,6 @@ This repository provides a Docker-based environment to ensure that all participa
    ```
 
 2. Build the Docker image using the provided `Dockerfile`:
-
 
    For Windows:
    ```bash
@@ -46,7 +51,11 @@ This command will:
 - Run the container to start Jupyter Notebook.
 - Expose port 8888, which is commonly used for Jupyter notebooks (`-p 8888:8888`).
 
-Copy the URL from the terminal output and open it in your browser to access the notebooks.
+Copy the URL from the terminal output and open it in your browser to access the notebooks. It should look like:
+
+```bash
+http://localhost:8888/?token=<some-random-string>
+```
 
 ## Accessing the Container
 
