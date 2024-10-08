@@ -1,27 +1,37 @@
-# Use a Windows Server Core image with Python pre-installed
-FROM python:3.10-windowsservercore
+# Use Python 3.1 slim image as the base
+FROM python:3.10-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Set work directory
-WORKDIR C:/app
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry
 RUN pip install --no-cache-dir poetry
 
 # Copy only requirements to cache them in docker layer
-COPY pyproject.toml poetry.lock* ./
+COPY pyproject.toml poetry.lock* /app/
 
-# Configure Poetry and install project dependencies
-RUN poetry config virtualenvs.create false
-RUN poetry install --no-interaction --no-ansi
+# Install project dependencies
+RUN poetry config virtualenvs.create false \
+    && poetry install --no-interaction --no-ansi
 
 # Copy project
-COPY . .
+COPY . /app
 
 # Copy entrypoint script
-COPY entrypoint.bat C:/entrypoint.bat
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Expose port for Jupyter
 EXPOSE 8888
 
 # Set entrypoint
-ENTRYPOINT ["C:/entrypoint.bat"]
+ENTRYPOINT ["bash", "/entrypoint.sh"]
