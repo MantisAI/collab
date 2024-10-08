@@ -17,18 +17,17 @@ WORKDIR /app
 # Install Poetry
 RUN pip install --no-cache-dir poetry
 
-# Copy only requirements to cache them in docker layer
-COPY pyproject.toml poetry.lock* /app/
+# Copy project files
+COPY . /app
 
 # Install project dependencies
 RUN poetry config virtualenvs.create false ; \
-    poetry install --no-interaction --no-ansi
+    poetry install --no-interaction --no-ansi --no-root
 
-# Copy project
-COPY . /app
-
-# Copy entrypoint script
-COPY entrypoint.ps1 /entrypoint.ps1
+# Create entrypoint script
+RUN Set-Content -Path /entrypoint.ps1 -Value @"
+jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root
+"@
 
 # Expose port for Jupyter
 EXPOSE 8888
