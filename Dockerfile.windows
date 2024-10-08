@@ -25,9 +25,7 @@ RUN poetry config virtualenvs.create false ; \
     poetry install --no-interaction --no-ansi --no-root
 
 # Create entrypoint script
-RUN Set-Content -Path /entrypoint.ps1 -Value @'
-jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root
-'@
+RUN echo jupyter notebook --ip 0.0.0.0 --port 8888 --no-browser --allow-root > /entrypoint.ps1
 
 # Expose port for Jupyter
 EXPOSE 8888
