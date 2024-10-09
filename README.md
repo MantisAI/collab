@@ -20,8 +20,8 @@ This repository provides a Docker-based environment to ensure that all participa
 1. Clone this repository to your local machine:
 
    ```bash
-   git clone git@github.com:MantisAI/edifai.git
-   cd edifai
+   git clone git@github.com:MantisAI/collab.git
+   cd collab
    ```
 
 2. Build the Docker image using the provided `Dockerfile`:
